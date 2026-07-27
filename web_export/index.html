@@ -2,13 +2,29 @@
 <html lang="zh-Hant">
 	<head>
 		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+		<meta name="mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+		<meta name="apple-mobile-web-app-title" content="錦繡商途">
 		<title>錦繡商途</title>
 		<style>
 html, body, #canvas {
 	margin: 0;
 	padding: 0;
 	border: 0;
+}
+
+html, body {
+	position: fixed;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	overscroll-behavior: none;
+	-webkit-user-select: none;
+	user-select: none;
+	-webkit-touch-callout: none;
+	-webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -25,6 +41,43 @@ body {
 
 #canvas:focus {
 	outline: none;
+}
+
+/* ===== 手機直向握持:提示旋轉為橫向 ===== */
+#rotate-overlay {
+	display: none;
+	position: fixed;
+	inset: 0;
+	z-index: 9999;
+	background: #1a1512;
+	color: #e8d5a8;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	text-align: center;
+	padding: 2rem;
+	box-sizing: border-box;
+	font-size: 1.1rem;
+	line-height: 2;
+}
+
+#rotate-overlay .phone {
+	display: inline-block;
+	width: 28px;
+	height: 48px;
+	border: 3px solid #e8d5a8;
+	border-radius: 6px;
+	margin-bottom: 1rem;
+	animation: jxst-rotate 1.6s ease-in-out infinite;
+}
+
+@keyframes jxst-rotate {
+	0%, 20% { transform: rotate(0deg); }
+	60%, 100% { transform: rotate(90deg); }
+}
+
+@media (orientation: portrait) and (pointer: coarse) {
+	#rotate-overlay { display: flex; }
 }
 
 /* ===== 《錦繡商途》品牌加載畫面(取代 Godot 預設載入畫面) ===== */
@@ -217,9 +270,22 @@ body {
 	.ls-character { opacity: 0.35; width: 60%; right: -6%; }
 	#status.shown .ls-character { opacity: 0.35; }
 }
+
+/* 手機橫向(高度受限):壓縮面板與字級,避免引子溢出 */
+@media (max-height: 540px) {
+	.ls-panel { top: 4%; bottom: 24%; padding: 12px 20px; width: 60%; }
+	.ls-game-title { font-size: 11px; }
+	.ls-chapter { font-size: 18px; margin-top: 4px; }
+	.ls-divider { margin: 6px 0; }
+	.ls-story { font-size: 12px; line-height: 1.55; }
+	.ls-story p { margin-bottom: 0.4em; }
+	.ls-bottom { bottom: 3%; }
+	.ls-bar-row { font-size: 11px; }
+	.ls-hint { font-size: 11px; margin-top: 6px; }
+}
 		</style>
 		<link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
-	<link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
+<link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
 
 	</head>
 	<body>
@@ -230,6 +296,11 @@ body {
 		<noscript>
 			Your browser does not support JavaScript.
 		</noscript>
+
+		<div id="rotate-overlay">
+			<span class="phone"></span>
+			請將裝置旋轉為橫向遊玩<br>Rotate your device to landscape
+		</div>
 
 		<div id="status">
 			<div class="ls-character"></div>
@@ -256,9 +327,20 @@ body {
 
 		<script src="index.js"></script>
 		<script>
-const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":26894944,"index.wasm":41848195},"focusCanvas":true,"gdextensionLibs":[]};
-const GODOT_THREADS_ENABLED = true;
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":27691584,"index.wasm":43699190},"focusCanvas":true,"gdextensionLibs":[]};
+const GODOT_THREADS_ENABLED = false;
 const engine = new Engine(GODOT_CONFIG);
+
+/* ===== Android:首次觸控時嘗試進入全螢幕(iOS Safari 不支援,會被 catch 忽略) ===== */
+if (/Android/i.test(navigator.userAgent) && document.documentElement.requestFullscreen) {
+	const jxstUnlockFullscreen = function () {
+		document.removeEventListener('touchend', jxstUnlockFullscreen);
+		try {
+			document.documentElement.requestFullscreen().catch(function () {});
+		} catch (e) {}
+	};
+	document.addEventListener('touchend', jxstUnlockFullscreen);
+}
 
 /* ===== 品牌加載畫面:序章引子打字機 ===== */
 const LS_PARAGRAPHS = [
@@ -446,3 +528,4 @@ lsTypeParagraphs(0);
 		</script>
 	</body>
 </html>
+

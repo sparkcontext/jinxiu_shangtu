@@ -29,6 +29,28 @@ The `web_export/` folder contains the Godot 4 HTML5 build. It is deployed automa
 }
 ```
 
+## 📱 Mobile Support (iPhone / Android)
+
+The Web export is mobile-compatible out of the box:
+
+- **Single-threaded build** (`variant/thread_support=false`) — no SharedArrayBuffer /
+  cross-origin-isolation requirement, so it runs on older iOS Safari and in-app webviews.
+- **Custom shell** `web_shell.html` (wired via `html/custom_html_shell`) adds:
+  - `viewport-fit=cover`, no-zoom viewport, web-app capable meta tags
+  - no page scroll / bounce / long-press selection during play
+  - rotate-to-landscape overlay on portrait phones
+  - fullscreen request on first touch (Android)
+  - compact loading-screen layout for landscape phones (`max-height: 540px`)
+- **Project settings**: `window/stretch/mode="canvas_items"` + `aspect="expand"`
+  scale the 1280×720 UI to any screen; touch taps are emulated as mouse input.
+- `web_export/` is excluded from the `.pck` (`exclude_filter`) to avoid recursive bloat.
+
+To re-export after changes:
+
+```bash
+../tools/Godot_v4.4.1-stable_win64_console.exe --headless --path . --export-release "Web" web_export/index.html
+```
+
 ## ⚡ Optimization Notes
 
 | File | Size | Notes |

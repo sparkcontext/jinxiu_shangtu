@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+		<meta name="mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+		<meta name="apple-mobile-web-app-title" content="錦繡商途">
+		<title>$GODOT_PROJECT_NAME</title>
+		<style>
+html, body, #canvas {
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+html, body {
+	position: fixed;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	overscroll-behavior: none;
+	-webkit-user-select: none;
+	user-select: none;
+	-webkit-touch-callout: none;
+	-webkit-tap-highlight-color: transparent;
+}
+
+body {
+	color: white;
+	background-color: black;
+	overflow: hidden;
+	touch-action: none;
+	font-family: "Noto Serif TC", "Songti TC", "PMingLiU", "KaiTi", serif;
+}
+
+#canvas {
+	display: block;
+}
+
+#canvas:focus {
+	outline: none;
+}
+
+/* ===== 手機直向握持:提示旋轉為橫向 ===== */
+#rotate-overlay {
+	display: none;
+	position: fixed;
+	inset: 0;
+	z-index: 9999;
+	background: #1a1512;
+	color: #e8d5a8;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	text-align: center;
+	padding: 2rem;
+	box-sizing: border-box;
+	font-size: 1.1rem;
+	line-height: 2;
+}
+
+#rotate-overlay .phone {
+	display: inline-block;
+	width: 28px;
+	height: 48px;
+	border: 3px solid #e8d5a8;
+	border-radius: 6px;
+	margin-bottom: 1rem;
+	animation: jxst-rotate 1.6s ease-in-out infinite;
+}
+
+@keyframes jxst-rotate {
+	0%, 20% { transform: rotate(0deg); }
+	60%, 100% { transform: rotate(90deg); }
+}
+
+@media (orientation: portrait) and (pointer: coarse) {
+	#rotate-overlay { display: flex; }
+}
+
+/* ===== 《錦繡商途》品牌加載畫面(取代 Godot 預設載入畫面) ===== */
+#status {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	z-index: 5;
+	background: #000 url("assets/parlor.png") center / cover no-repeat;
+	transition: opacity 0.8s ease;
+}
+
+#status.done {
+	opacity: 0;
+	pointer-events: none;
+}
+
+#status::after { /* 壓暗底圖 */
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.62);
+}
+
+.ls-vignette {
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	background: radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(0, 0, 0, 0.55) 100%);
+	pointer-events: none;
+}
+
+.ls-character {
+	position: absolute;
+	z-index: 3;
+	right: 1%;
+	top: 3%;
+	bottom: 3%;
+	width: 37%;
+	background: url("assets/shen_yunjin.png") center bottom / contain no-repeat;
+	opacity: 0;
+	transform: translateX(24px);
+	transition: opacity 1.6s ease 0.4s, transform 1.6s ease 0.4s;
+}
+
+#status.shown .ls-character {
+	opacity: 1;
+	transform: translateX(0);
+}
+
+.ls-panel {
+	position: absolute;
+	z-index: 4;
+	left: 4.5%;
+	top: 8%;
+	bottom: 15%;
+	width: 55%;
+	background: rgba(18, 13, 10, 0.74);
+	border: 1px solid rgba(232, 201, 122, 0.35);
+	outline: 1px solid rgba(232, 201, 122, 0.15);
+	outline-offset: 4px;
+	padding: 24px 34px;
+	overflow: hidden;
+}
+
+.ls-game-title {
+	font-size: clamp(13px, 1.4vw, 18px);
+	letter-spacing: 0.5em;
+	color: #bfab84;
+}
+
+.ls-chapter {
+	margin-top: 8px;
+	font-size: clamp(22px, 2.6vw, 32px);
+	letter-spacing: 0.12em;
+	color: #e8c97a;
+}
+
+.ls-divider {
+	margin: 12px 0;
+	height: 1px;
+	background: linear-gradient(90deg, rgba(232, 201, 122, 0.6), rgba(232, 201, 122, 0.05));
+}
+
+.ls-story {
+	font-size: clamp(13px, 1.45vw, 18px);
+	line-height: 1.8;
+	color: #e0d6bf;
+}
+
+.ls-story p {
+	margin-bottom: 0.7em;
+	min-height: 1em;
+}
+
+.ls-story .gold { color: #e8c97a; }
+.ls-story .warn { color: #d98f8f; }
+.ls-story .quote { color: #f7ead0; font-style: italic; letter-spacing: 0.08em; }
+
+.ls-bottom {
+	position: absolute;
+	z-index: 4;
+	left: 8%;
+	right: 8%;
+	bottom: 4.5%;
+}
+
+.ls-bar-row {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	font-size: clamp(12px, 1.3vw, 17px);
+	color: #bfab84;
+}
+
+.ls-load-label { width: 96px; letter-spacing: 0.2em; }
+
+.ls-bar {
+	flex: 1;
+	height: 14px;
+	background: rgba(26, 20, 15, 0.9);
+	border: 1px solid rgba(115, 92, 56, 0.8);
+	border-radius: 2px;
+	overflow: hidden;
+}
+
+.ls-bar-fill {
+	height: 100%;
+	width: 0%;
+	background: linear-gradient(90deg, #b98f3e, #dbae56);
+	position: relative;
+	transition: width 0.15s linear;
+}
+
+.ls-bar-fill::after { /* 絲帛流光 */
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, 0.35) 50%, transparent 70%);
+	animation: ls-shimmer 1.6s linear infinite;
+}
+
+@keyframes ls-shimmer {
+	from { transform: translateX(-100%); }
+	to { transform: translateX(100%); }
+}
+
+.ls-percent { width: 52px; text-align: right; font-variant-numeric: tabular-nums; }
+
+.ls-hint {
+	margin-top: 10px;
+	text-align: center;
+	font-size: clamp(12px, 1.35vw, 17px);
+	letter-spacing: 0.25em;
+	color: #e8c97a;
+	opacity: 0;
+}
+
+.ls-hint.ready { animation: ls-breathe 2.2s ease-in-out infinite; }
+
+@keyframes ls-breathe {
+	0%, 100% { opacity: 0.35; }
+	50% { opacity: 1; }
+}
+
+#status-notice {
+	display: none;
+	position: absolute;
+	z-index: 6;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	max-width: 32rem;
+	background-color: rgba(91, 57, 67, 0.95);
+	border-radius: 0.5rem;
+	border: 1px solid #9b3943;
+	color: #e0e0e0;
+	font-family: 'Noto Sans', 'Droid Sans', Arial, sans-serif;
+	line-height: 1.3;
+	margin: 0 2rem;
+	overflow: hidden;
+	padding: 1rem;
+	text-align: center;
+}
+
+@media (max-width: 760px) {
+	.ls-panel { width: 88%; bottom: 26%; }
+	.ls-character { opacity: 0.35; width: 60%; right: -6%; }
+	#status.shown .ls-character { opacity: 0.35; }
+}
+
+/* 手機橫向(高度受限):壓縮面板與字級,避免引子溢出 */
+@media (max-height: 540px) {
+	.ls-panel { top: 4%; bottom: 24%; padding: 12px 20px; width: 60%; }
+	.ls-game-title { font-size: 11px; }
+	.ls-chapter { font-size: 18px; margin-top: 4px; }
+	.ls-divider { margin: 6px 0; }
+	.ls-story { font-size: 12px; line-height: 1.55; }
+	.ls-story p { margin-bottom: 0.4em; }
+	.ls-bottom { bottom: 3%; }
+	.ls-bar-row { font-size: 11px; }
+	.ls-hint { font-size: 11px; margin-top: 6px; }
+}
+		</style>
+		$GODOT_HEAD_INCLUDE
+	</head>
+	<body>
+		<canvas id="canvas">
+			Your browser does not support the canvas tag.
+		</canvas>
+
+		<noscript>
+			Your browser does not support JavaScript.
+		</noscript>
+
+		<div id="rotate-overlay">
+			<span class="phone"></span>
+			請將裝置旋轉為橫向遊玩<br>Rotate your device to landscape
+		</div>
+
+		<div id="status">
+			<div class="ls-character"></div>
+			<div class="ls-vignette"></div>
+
+			<div class="ls-panel">
+				<div class="ls-game-title">錦 繡 商 途</div>
+				<div class="ls-chapter">序章 · 風起上海灘</div>
+				<div class="ls-divider"></div>
+				<div class="ls-story" id="ls-story"></div>
+			</div>
+
+			<div class="ls-bottom">
+				<div class="ls-bar-row">
+					<span class="ls-load-label" id="ls-load-label">載入中</span>
+					<div class="ls-bar"><div class="ls-bar-fill" id="ls-bar-fill"></div></div>
+					<span class="ls-percent" id="ls-percent">0%</span>
+				</div>
+				<div class="ls-hint" id="ls-hint">—— 即將推門迎客 ——</div>
+			</div>
+
+			<div id="status-notice"></div>
+		</div>
+
+		<script src="$GODOT_URL"></script>
+		<script>
+const GODOT_CONFIG = $GODOT_CONFIG;
+const GODOT_THREADS_ENABLED = $GODOT_THREADS_ENABLED;
+const engine = new Engine(GODOT_CONFIG);
+
+/* ===== Android:首次觸控時嘗試進入全螢幕(iOS Safari 不支援,會被 catch 忽略) ===== */
+if (/Android/i.test(navigator.userAgent) && document.documentElement.requestFullscreen) {
+	const jxstUnlockFullscreen = function () {
+		document.removeEventListener('touchend', jxstUnlockFullscreen);
+		try {
+			document.documentElement.requestFullscreen().catch(function () {});
+		} catch (e) {}
+	};
+	document.addEventListener('touchend', jxstUnlockFullscreen);
+}
+
+/* ===== 品牌加載畫面:序章引子打字機 ===== */
+const LS_PARAGRAPHS = [
+	{ cls: "",   html: '<span class="gold">清光緒末年</span>,上海開埠已逾半個甲子。<br>外灘汽笛日夜不息,洋行旗幟插滿十里洋場——這裡是冒險家的樂園,也是無數商號的墳場。' },
+	{ cls: "",   html: '錦記綢緞莊,曾是名噪一時的老字號。老掌櫃驟逝,洋行壓價、同行環伺,賬上只餘三百兩碎銀。' },
+	{ cls: "warn", html: '人人都在等著看笑話:一個寡居的女人,撐不起這扇門面。' },
+	{ cls: "",   html: '今夜,一封燙金請帖送到案頭——英商亨利洋行的買辦<span class="gold">克勞迪</span>,願與錦記「談一談」。<br>一紙大單,足以翻身;一步踏錯,萬劫不復。' },
+	{ cls: "",   html: '她對著銅鏡理了理衣襟,輕聲道——' },
+	{ cls: "quote", html: '「開門,迎客。」' },
+];
+const LS_TYPE_MS = 36;
+
+const lsStory = document.getElementById('ls-story');
+const lsHint = document.getElementById('ls-hint');
+let lsSkipTyping = false;
+let lsTyped = false;
+
+function lsTypeParagraphs(idx) {
+	if (idx >= LS_PARAGRAPHS.length) {
+		lsTyped = true;
+		lsMaybeReady();
+		return;
+	}
+	const spec = LS_PARAGRAPHS[idx];
+	const p = document.createElement('p');
+	if (spec.cls) p.className = spec.cls;
+	lsStory.appendChild(p);
+
+	if (lsSkipTyping) {
+		p.innerHTML = spec.html;
+		lsTypeParagraphs(idx + 1);
+		return;
+	}
+	const tpl = document.createElement('template');
+	tpl.innerHTML = spec.html;
+	const nodes = Array.from(tpl.content.childNodes);
+	let n = 0;
+	(function stepNode() {
+		if (n >= nodes.length || lsSkipTyping) {
+			if (lsSkipTyping) p.innerHTML = spec.html;
+			lsTypeParagraphs(idx + 1);
+			return;
+		}
+		const node = nodes[n];
+		if (node.nodeType === Node.TEXT_NODE) {
+			const text = node.textContent;
+			let i = 0;
+			(function stepChar() {
+				if (lsSkipTyping) { p.innerHTML = spec.html; lsTypeParagraphs(idx + 1); return; }
+				if (i < text.length) {
+					p.appendChild(document.createTextNode(text[i++]));
+					setTimeout(stepChar, LS_TYPE_MS);
+				} else { n++; stepNode(); }
+			})();
+		} else if (node.nodeName === 'BR') {
+			p.appendChild(document.createElement('br'));
+			n++; stepNode();
+		} else {
+			const clone = node.cloneNode(false);
+			p.appendChild(clone);
+			const text = node.textContent;
+			let i = 0;
+			(function stepChar() {
+				if (lsSkipTyping) { p.innerHTML = spec.html; lsTypeParagraphs(idx + 1); return; }
+				if (i < text.length) {
+					clone.appendChild(document.createTextNode(text[i++]));
+					setTimeout(stepChar, LS_TYPE_MS);
+				} else { n++; stepNode(); }
+			})();
+		}
+	})();
+}
+
+const lsLoadLabel = document.getElementById('ls-load-label');
+let lsLoaded = false;
+
+function lsMaybeReady() {
+	if (lsTyped && lsLoaded) lsHint.classList.add('ready');
+}
+
+document.getElementById('status').addEventListener('click', () => {
+	if (!lsTyped) lsSkipTyping = true; // 點按補完引子;引擎就緒後畫面自動淡出
+});
+
+requestAnimationFrame(() => requestAnimationFrame(() => {
+	document.getElementById('status').classList.add('shown');
+}));
+lsTypeParagraphs(0);
+
+/* ===== Godot 引擎啟動(進度接到品牌進度條) ===== */
+(function () {
+	const statusOverlay = document.getElementById('status');
+	const statusNotice = document.getElementById('status-notice');
+	const barFill = document.getElementById('ls-bar-fill');
+	const percent = document.getElementById('ls-percent');
+
+	let initializing = true;
+
+	function hideStatusOverlay() {
+		if (!initializing) {
+			return;
+		}
+		initializing = false;
+		lsLoaded = true;
+		lsLoadLabel.textContent = '備貨妥當';
+		lsMaybeReady();
+		// 稍候片刻讓玩家看到 100%,再淡出進入遊戲
+		setTimeout(() => {
+			statusOverlay.classList.add('done');
+			setTimeout(() => statusOverlay.remove(), 900);
+		}, 500);
+	}
+
+	function setStatusNotice(text) {
+		while (statusNotice.lastChild) {
+			statusNotice.removeChild(statusNotice.lastChild);
+		}
+		const lines = text.split('\n');
+		lines.forEach((line) => {
+			statusNotice.appendChild(document.createTextNode(line));
+			statusNotice.appendChild(document.createElement('br'));
+		});
+		statusNotice.style.display = 'block';
+	}
+
+	function displayFailureNotice(err) {
+		console.error(err);
+		if (err instanceof Error) {
+			setStatusNotice(err.message);
+		} else if (typeof err === 'string') {
+			setStatusNotice(err);
+		} else {
+			setStatusNotice('An unknown error occurred.');
+		}
+		initializing = false;
+	}
+
+	const missing = Engine.getMissingFeatures({
+		threads: GODOT_THREADS_ENABLED,
+	});
+
+	if (missing.length !== 0) {
+		if (GODOT_CONFIG['serviceWorker'] && GODOT_CONFIG['ensureCrossOriginIsolationHeaders'] && 'serviceWorker' in navigator) {
+			let serviceWorkerRegistrationPromise;
+			try {
+				serviceWorkerRegistrationPromise = navigator.serviceWorker.getRegistration();
+			} catch (err) {
+				serviceWorkerRegistrationPromise = Promise.reject(new Error('Service worker registration failed.'));
+			}
+			// There's a chance that installing the service worker would fix the issue
+			Promise.race([
+				serviceWorkerRegistrationPromise.then((registration) => {
+					if (registration != null) {
+						return Promise.reject(new Error('Service worker already exists.'));
+					}
+					return registration;
+				}).then(() => engine.installServiceWorker()),
+				// For some reason, `getRegistration()` can stall
+				new Promise((resolve) => {
+					setTimeout(() => resolve(), 2000);
+				}),
+			]).then(() => {
+				// Reload if there was no error.
+				window.location.reload();
+			}).catch((err) => {
+				console.error('Error while registering service worker:', err);
+			});
+		} else {
+			// Display the message as usual
+			const missingMsg = 'Error\nThe following features required to run Godot projects on the Web are missing:\n';
+			displayFailureNotice(missingMsg + missing.join('\n'));
+		}
+	} else {
+		engine.startGame({
+			'onProgress': function (current, total) {
+				if (current > 0 && total > 0) {
+					const pct = Math.min(100, Math.round((current / total) * 100));
+					barFill.style.width = pct + '%';
+					percent.textContent = pct + '%';
+				}
+			},
+		}).then(hideStatusOverlay, displayFailureNotice);
+	}
+}());
+		</script>
+	</body>
+</html>
