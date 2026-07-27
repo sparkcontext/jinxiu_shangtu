@@ -1,0 +1,31 @@
+; Godot 4 project file — 《錦繡商途》M1
+; 直接用 Godot 4.x 開啟本目錄即可
+
+config_version=5
+
+[application]
+
+config/name="錦繡商途"
+config/description="清末女商人談判經商遊戲 — M1 雛形:對話引擎 + 第一幕·客廳會談"
+run/main_scene="res://scenes/main.tscn"
+config/features=PackedStringArray("4.2")
+config/icon="res://icon.svg"
+
+[autoload]
+
+GameState="*res://scripts/systems/game_state.gd"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/size/window_width_override=1280
+window/size/window_height_override=720
+
+[gui]
+
+theme/custom="res://assets/theme/default_theme.tres"
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
