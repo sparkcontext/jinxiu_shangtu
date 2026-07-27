@@ -57,6 +57,24 @@ func _update_round_ui() -> void:
 		hints.append("◆ 他心存戒備,出價宜穩不宜狠。")
 	_hint_label.text = "\n".join(hints) if not hints.is_empty() else "◆ 底細不明,謹慎出價。"
 
+## 鍵盤操作:←→ 調價,Enter 出價,空白鍵接受他的還價
+func _unhandled_key_input(event: InputEvent) -> void:
+	if not visible:
+		return
+	if event.is_action_pressed("ui_left"):
+		_slider.value -= 1
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("ui_right"):
+		_slider.value += 1
+		get_viewport().set_input_as_handled()
+	elif event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER:
+			_on_offer()
+			get_viewport().set_input_as_handled()
+		elif event.keycode == KEY_SPACE and _accept_btn.visible:
+			_on_accept()
+			get_viewport().set_input_as_handled()
+
 func _on_offer() -> void:
 	var ask := int(_slider.value)
 	if ask <= _willingness:

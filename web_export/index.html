@@ -1,10 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-TW">
 	<head>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
 		<title>錦繡商途</title>
 		<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap');
+
 html, body, #canvas {
 	margin: 0;
 	padding: 0;
@@ -12,10 +14,11 @@ html, body, #canvas {
 }
 
 body {
-	color: white;
-	background-color: black;
+	color: #f5e6c8;
+	background-color: #1a0f0f;
 	overflow: hidden;
 	touch-action: none;
+	font-family: 'Noto Serif TC', 'Noto Sans TC', serif;
 }
 
 #canvas {
@@ -26,92 +29,189 @@ body {
 	outline: none;
 }
 
-#status, #status-splash, #status-progress {
-	position: absolute;
-	left: 0;
-	right: 0;
-}
-
-#status, #status-splash {
-	top: 0;
-	bottom: 0;
-}
-
+/* ===== Loading Screen ===== */
 #status {
-	background-color: #242424;
+	position: fixed;
+	top: 0; left: 0; right: 0; bottom: 0;
+	background: #1a0f0f;
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
 	align-items: center;
-	visibility: hidden;
+	z-index: 9999;
+	transition: opacity 0.8s ease;
 }
 
-#status-splash {
-	max-height: 100%;
-	max-width: 100%;
-	margin: auto;
+#status.fade-out {
+	opacity: 0;
+	pointer-events: none;
 }
 
-#status-splash.show-image--false {
-	display: none;
+/* Decorative border frame */
+.loading-frame {
+	position: relative;
+	padding: 3rem 4rem;
+	border: 2px solid #8b6914;
+	border-radius: 4px;
+	text-align: center;
+	max-width: 90vw;
+	box-sizing: border-box;
 }
 
-#status-splash.fullsize--true {
-	height: 100%;
-	width: 100%;
-	object-fit: contain;
+.loading-frame::before,
+.loading-frame::after {
+	content: '';
+	position: absolute;
+	width: 20px; height: 20px;
+	border: 2px solid #c9a227;
 }
 
-#status-splash.use-filter--false {
-	image-rendering: pixelated;
+.loading-frame::before {
+	top: -2px; left: -2px;
+	border-right: none; border-bottom: none;
 }
 
-#status-progress, #status-notice {
-	display: none;
+.loading-frame::after {
+	bottom: -2px; right: -2px;
+	border-left: none; border-top: none;
+}
+
+.game-title {
+	font-size: 2.5rem;
+	font-weight: 700;
+	color: #c9a227;
+	margin-bottom: 0.5rem;
+	letter-spacing: 0.3em;
+	text-shadow: 0 2px 8px rgba(201, 162, 39, 0.3);
+}
+
+.game-subtitle {
+	font-size: 0.9rem;
+	color: #8b7355;
+	margin-bottom: 2rem;
+	letter-spacing: 0.15em;
+}
+
+/* Progress bar container */
+.progress-container {
+	width: 280px;
+	height: 6px;
+	background: #2a1a1a;
+	border-radius: 3px;
+	overflow: hidden;
+	margin: 1.5rem auto 1rem;
+	border: 1px solid #3a2a2a;
 }
 
 #status-progress {
-	bottom: 10%;
-	width: 50%;
-	margin: 0 auto;
+	width: 0%;
+	height: 100%;
+	background: #c9a227;
+	border-radius: 3px;
+	transition: width 0.2s ease;
+	box-shadow: 0 0 8px rgba(201, 162, 39, 0.4);
 }
 
+/* Percentage text */
+.progress-text {
+	font-size: 0.85rem;
+	color: #a08060;
+	margin-top: 0.75rem;
+	letter-spacing: 0.1em;
+}
+
+#progress-percent {
+	color: #c9a227;
+	font-weight: 700;
+}
+
+/* Loading message */
+.loading-msg {
+	font-size: 1rem;
+	color: #b09070;
+	margin-top: 1.5rem;
+	letter-spacing: 0.2em;
+}
+
+#loading-dots::after {
+	content: '';
+	animation: dots 1.5s steps(4, end) infinite;
+}
+
+@keyframes dots {
+	0%   { content: ''; }
+	25%  { content: '.'; }
+	50%  { content: '..'; }
+	75%  { content: '...'; }
+}
+
+/* Ornamental line */
+.ornament {
+	width: 60px;
+	height: 1px;
+	background: #8b6914;
+	margin: 1rem auto;
+}
+
+/* Error notice */
 #status-notice {
-	background-color: #5b3943;
-	border-radius: 0.5rem;
-	border: 1px solid #9b3943;
-	color: #e0e0e0;
-	font-family: 'Noto Sans', 'Droid Sans', Arial, sans-serif;
-	line-height: 1.3;
-	margin: 0 2rem;
-	overflow: hidden;
-	padding: 1rem;
+	display: none;
+	background: #3a1a1a;
+	border: 1px solid #8b3333;
+	border-radius: 4px;
+	color: #e0c0c0;
+	font-family: 'Noto Serif TC', serif;
+	line-height: 1.5;
+	margin-top: 1.5rem;
+	padding: 1rem 1.5rem;
 	text-align: center;
-	z-index: 1;
+	max-width: 400px;
+	font-size: 0.9rem;
+}
+
+#status-notice.show {
+	display: block;
+}
+
+/* Hide default Godot splash */
+#status-splash {
+	display: none;
 }
 		</style>
 		<link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
-<link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
-
+		<link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
 	</head>
 	<body>
 		<canvas id="canvas">
-			Your browser does not support the canvas tag.
+			您的瀏覽器不支援 Canvas，請使用現代瀏覽器開啟。
 		</canvas>
 
 		<noscript>
-			Your browser does not support JavaScript.
+			您的瀏覽器不支援 JavaScript，請啟用後重新載入。
 		</noscript>
 
 		<div id="status">
 			<img id="status-splash" class="show-image--true fullsize--true use-filter--true" src="index.png" alt="">
-			<progress id="status-progress"></progress>
-			<div id="status-notice"></div>
+			<div class="loading-frame">
+				<div class="game-title">錦繡商途</div>
+				<div class="game-subtitle">JINXIU SHANGTU</div>
+				<div class="ornament"></div>
+				<div class="progress-container">
+					<div id="status-progress"></div>
+				</div>
+				<div class="progress-text">
+					<span id="progress-percent">0</span>%
+				</div>
+				<div class="loading-msg">
+					<span id="loading-text">載入中</span><span id="loading-dots"></span>
+				</div>
+				<div id="status-notice"></div>
+			</div>
 		</div>
 
 		<script src="index.js"></script>
 		<script>
-const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":21892896,"index.wasm":41848195},"focusCanvas":true,"gdextensionLibs":[]};
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":21894320,"index.wasm":41848195},"focusCanvas":true,"gdextensionLibs":[]};
 const GODOT_THREADS_ENABLED = true;
 const engine = new Engine(GODOT_CONFIG);
 
@@ -119,6 +219,8 @@ const engine = new Engine(GODOT_CONFIG);
 	const statusOverlay = document.getElementById('status');
 	const statusProgress = document.getElementById('status-progress');
 	const statusNotice = document.getElementById('status-notice');
+	const progressPercent = document.getElementById('progress-percent');
+	const loadingText = document.getElementById('loading-text');
 
 	let initializing = true;
 	let statusMode = '';
@@ -128,13 +230,13 @@ const engine = new Engine(GODOT_CONFIG);
 			return;
 		}
 		if (mode === 'hidden') {
-			statusOverlay.remove();
-			initializing = false;
+			statusOverlay.classList.add('fade-out');
+			setTimeout(() => {
+				statusOverlay.remove();
+				initializing = false;
+			}, 800);
 			return;
 		}
-		statusOverlay.style.visibility = 'visible';
-		statusProgress.style.display = mode === 'progress' ? 'block' : 'none';
-		statusNotice.style.display = mode === 'notice' ? 'block' : 'none';
 		statusMode = mode;
 	}
 
@@ -147,16 +249,19 @@ const engine = new Engine(GODOT_CONFIG);
 			statusNotice.appendChild(document.createTextNode(line));
 			statusNotice.appendChild(document.createElement('br'));
 		});
+		statusNotice.classList.add('show');
 	}
 
 	function displayFailureNotice(err) {
 		console.error(err);
+		loadingText.textContent = '發生錯誤';
+		document.getElementById('loading-dots').style.display = 'none';
 		if (err instanceof Error) {
 			setStatusNotice(err.message);
 		} else if (typeof err === 'string') {
 			setStatusNotice(err);
 		} else {
-			setStatusNotice('An unknown error occurred.');
+			setStatusNotice('發生未知錯誤，請重新整理頁面。');
 		}
 		setStatusMode('notice');
 		initializing = false;
@@ -167,6 +272,8 @@ const engine = new Engine(GODOT_CONFIG);
 	});
 
 	if (missing.length !== 0) {
+		loadingText.textContent = '瀏覽器不支援';
+		document.getElementById('loading-dots').style.display = 'none';
 		if (GODOT_CONFIG['serviceWorker'] && GODOT_CONFIG['ensureCrossOriginIsolationHeaders'] && 'serviceWorker' in navigator) {
 			let serviceWorkerRegistrationPromise;
 			try {
@@ -174,7 +281,6 @@ const engine = new Engine(GODOT_CONFIG);
 			} catch (err) {
 				serviceWorkerRegistrationPromise = Promise.reject(new Error('Service worker registration failed.'));
 			}
-			// There's a chance that installing the service worker would fix the issue
 			Promise.race([
 				serviceWorkerRegistrationPromise.then((registration) => {
 					if (registration != null) {
@@ -182,19 +288,16 @@ const engine = new Engine(GODOT_CONFIG);
 					}
 					return registration;
 				}).then(() => engine.installServiceWorker()),
-				// For some reason, `getRegistration()` can stall
 				new Promise((resolve) => {
 					setTimeout(() => resolve(), 2000);
 				}),
 			]).then(() => {
-				// Reload if there was no error.
 				window.location.reload();
 			}).catch((err) => {
 				console.error('Error while registering service worker:', err);
 			});
 		} else {
-			// Display the message as usual
-			const missingMsg = 'Error\nThe following features required to run Godot projects on the Web are missing:\n';
+			const missingMsg = '錯誤\n執行此遊戲需要以下瀏覽器功能，但您的瀏覽器不支援：\n';
 			displayFailureNotice(missingMsg + missing.join('\n'));
 		}
 	} else {
@@ -202,19 +305,20 @@ const engine = new Engine(GODOT_CONFIG);
 		engine.startGame({
 			'onProgress': function (current, total) {
 				if (current > 0 && total > 0) {
-					statusProgress.value = current;
-					statusProgress.max = total;
-				} else {
-					statusProgress.removeAttribute('value');
-					statusProgress.removeAttribute('max');
+					const pct = Math.round((current / total) * 100);
+					statusProgress.style.width = pct + '%';
+					progressPercent.textContent = pct;
 				}
 			},
 		}).then(() => {
-			setStatusMode('hidden');
+			loadingText.textContent = '即將開始';
+			document.getElementById('loading-dots').style.display = 'none';
+			setTimeout(() => {
+				setStatusMode('hidden');
+			}, 400);
 		}, displayFailureNotice);
 	}
 }());
 		</script>
 	</body>
 </html>
-

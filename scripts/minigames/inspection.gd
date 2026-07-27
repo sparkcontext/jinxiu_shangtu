@@ -50,7 +50,7 @@ func _build_bales() -> void:
 		var bale := Button.new()
 		bale.custom_minimum_size = Vector2(150, 84)
 		bale.toggle_mode = true
-		bale.text = "絲綢"
+		bale.text = "%d 號" % (i + 1)
 		var normal := StyleBoxFlat.new()
 		if _flawed.has(i):
 			## 瑕疵包:色澤微微泛黃發暗,仔細看才分得出
@@ -64,8 +64,33 @@ func _build_bales() -> void:
 		bale.add_theme_stylebox_override("normal", normal)
 		bale.add_theme_stylebox_override("hover", normal)
 		bale.add_theme_stylebox_override("pressed", marked)
-		bale.toggled.connect(func(on: bool): bale.text = "✗ 可疑" if on else "絲綢")
+		bale.toggled.connect(func(on: bool): bale.text = "✗ 可疑" if on else "%d 號" % (i + 1))
 		_grid.add_child(bale)
+
+## 鍵盤操作:數字鍵 1-8 標記貨包,Enter 結束驗貨
+func _unhandled_key_input(event: InputEvent) -> void:
+	if not _running:
+		return
+	if not (event is InputEventKey and event.pressed and not event.echo):
+		return
+	var idx := -1
+	match event.keycode:
+		KEY_1, KEY_KP_1: idx = 0
+		KEY_2, KEY_KP_2: idx = 1
+		KEY_3, KEY_KP_3: idx = 2
+		KEY_4, KEY_KP_4: idx = 3
+		KEY_5, KEY_KP_5: idx = 4
+		KEY_6, KEY_KP_6: idx = 5
+		KEY_7, KEY_KP_7: idx = 6
+		KEY_8, KEY_KP_8: idx = 7
+	if idx >= 0:
+		var bales := _grid.get_children()
+		if idx < bales.size():
+			bales[idx].button_pressed = not bales[idx].button_pressed
+		get_viewport().set_input_as_handled()
+	elif event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER:
+		_finish()
+		get_viewport().set_input_as_handled()
 
 func _finish() -> void:
 	if not _running:

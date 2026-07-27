@@ -45,7 +45,7 @@ horizontal_alignment = 1
 [node name="Desc" type="Label" parent="Margin/VBox"]
 theme_override_colors/font_color = Color(0.85, 0.78, 0.62, 1)
 theme_override_font_sizes/font_size = 17
-text = "八包絲綢中混有三包瑕疵品。點出可疑的包,再按「驗完了」。"
+text = "八包絲綢中混有三包瑕疵品。點出可疑的包(數字鍵 1-8),Enter 結束。"
 horizontal_alignment = 1
 
 [node name="TimerBar" type="ProgressBar" parent="Margin/VBox"]
