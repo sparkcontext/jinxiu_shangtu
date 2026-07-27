@@ -21,6 +21,7 @@ var _shown := 0.0        ## 已顯示字元數(浮點累計)
 var _total_chars := 0
 var _progress := 0.0     ## 平滑後的進度條數值
 var _blink := 0.0
+var _last_tap_frame := -1 ## 去重:觸控與模擬滑鼠事件可能同幀成對送達
 
 func _ready() -> void:
 	_fade.modulate.a = 1.0
@@ -61,13 +62,22 @@ func _process(delta: float) -> void:
 		_blink += delta
 		_hint.modulate.a = 0.55 + 0.45 * sin(_blink * 3.0)
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
+	## 用 _input 而非 _unhandled_input:全屏背景/遮罩會吃掉事件,
+	## 這裡需要在 Control 消費之前攔截點按
 	if _proceeding:
 		return
 	var pressed: bool = (event is InputEventMouseButton and event.pressed) \
+		or (event is InputEventScreenTouch and event.pressed) \
 		or (event is InputEventKey and event.pressed and not event.echo)
 	if not pressed:
 		return
+	## 行動裝置上一次點按可能同時送達觸控與模擬滑鼠事件,
+	## 同一幀只處理一次,避免連跳「看完全文」和「進入遊戲」兩步
+	var frame := Engine.get_process_frames()
+	if frame == _last_tap_frame:
+		return
+	_last_tap_frame = frame
 	if not _typed:
 		_finish_typing() ## 第一次點按:直接看完全文
 	elif _loaded:
