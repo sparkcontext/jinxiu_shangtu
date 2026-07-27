@@ -43,8 +43,8 @@ func advance() -> void:
 	if _is_finished:
 		return
 	var node: Dictionary = _nodes.get(_current_id, {})
-	if node.has("choices"):
-		return ## 選項節點必須用 choose()
+	if node.has("choices") or node.has("minigame"):
+		return ## 選項節點必須用 choose();小遊戲節點由控制器 jump_to 推進
 	if node.get("end", false):
 		_is_finished = true
 		finished.emit()

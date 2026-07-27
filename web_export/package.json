@@ -1,0 +1,9 @@
+{
+  "name": "jinxiu-shangtu-web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "《錦繡商途》Web 版本機預覽",
+  "scripts": {
+    "dev": "node serve.js"
+  }
+}
