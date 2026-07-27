@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>錦繡商途 · 加載畫面預覽</title>
+<style>
+  :root {
+    --gold: #e8c97a;
+    --gold-dim: #bfab84;
+    --ink: #e0d6bf;
+    --paper: rgba(18, 13, 10, 0.74);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; background: #000; }
+  body {
+    font-family: "Noto Serif TC", "Songti TC", "PMingLiU", "KaiTi", serif;
+    color: var(--ink);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .stage {
+    position: relative;
+    width: 100vw; height: 100vh;
+    background: url("assets/backgrounds/parlor.png") center / cover no-repeat;
+  }
+  .stage::after {           /* 壓暗底圖 */
+    content: "";
+    position: absolute; inset: 0;
+    background: rgba(0, 0, 0, 0.62);
+  }
+  .vignette {               /* 四周暈影,聚焦中央 */
+    position: absolute; inset: 0; z-index: 2;
+    background: radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(0,0,0,0.55) 100%);
+    pointer-events: none;
+  }
+
+  .character {
+    position: absolute; z-index: 3;
+    right: 1%; top: 3%; bottom: 3%;
+    width: 37%;
+    background: url("assets/characters/shen_yunjin.png") center bottom / contain no-repeat;
+    opacity: 0;
+    transform: translateX(24px);
+    transition: opacity 1.6s ease 0.4s, transform 1.6s ease 0.4s;
+  }
+  .character.shown { opacity: 1; transform: translateX(0); }
+
+  .panel {
+    position: absolute; z-index: 4;
+    left: 4.5%; top: 8%; bottom: 15%;
+    width: 55%;
+    background: var(--paper);
+    border: 1px solid rgba(232, 201, 122, 0.35);
+    outline: 1px solid rgba(232, 201, 122, 0.15);
+    outline-offset: 4px;
+    padding: 24px 34px;
+    overflow: hidden;
+  }
+  .game-title {
+    font-size: clamp(13px, 1.4vw, 18px);
+    letter-spacing: 0.5em;
+    color: var(--gold-dim);
+  }
+  .chapter {
+    margin-top: 8px;
+    font-size: clamp(22px, 2.6vw, 32px);
+    color: var(--gold);
+    letter-spacing: 0.12em;
+  }
+  .divider {
+    margin: 12px 0;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(232,201,122,0.6), rgba(232,201,122,0.05));
+  }
+  .story {
+    font-size: clamp(13px, 1.45vw, 18px);
+    line-height: 1.8;
+  }
+  .story p { margin-bottom: 0.7em; min-height: 1em; }
+  .story .gold { color: var(--gold); }
+  .story .warn { color: #d98f8f; }
+  .story .quote { color: #f7ead0; font-style: italic; letter-spacing: 0.08em; }
+
+  .bottom {
+    position: absolute; z-index: 4;
+    left: 8%; right: 8%; bottom: 4.5%;
+  }
+  .bar-row {
+    display: flex; align-items: center; gap: 14px;
+    font-size: clamp(12px, 1.3vw, 17px);
+    color: var(--gold-dim);
+  }
+  .bar-row .load-label { width: 96px; letter-spacing: 0.2em; }
+  .bar {
+    flex: 1; height: 14px;
+    background: rgba(26, 20, 15, 0.9);
+    border: 1px solid rgba(115, 92, 56, 0.8);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, #b98f3e, #dbae56);
+    position: relative;
+    transition: width 0.15s linear;
+  }
+  .bar-fill::after {        /* 絲帛流光 */
+    content: "";
+    position: absolute; inset: 0;
+    background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.35) 50%, transparent 70%);
+    animation: shimmer 1.6s linear infinite;
+  }
+  @keyframes shimmer {
+    from { transform: translateX(-100%); }
+    to   { transform: translateX(100%); }
+  }
+  .bar-row .percent { width: 52px; text-align: right; font-variant-numeric: tabular-nums; }
+  .hint {
+    margin-top: 10px;
+    text-align: center;
+    font-size: clamp(12px, 1.35vw, 17px);
+    letter-spacing: 0.25em;
+    color: var(--gold);
+    opacity: 0;
+  }
+  .hint.ready { animation: breathe 2.2s ease-in-out infinite; }
+  @keyframes breathe {
+    0%, 100% { opacity: 0.35; }
+    50%      { opacity: 1; }
+  }
+
+  .fade {
+    position: absolute; inset: 0; z-index: 10;
+    background: #000;
+    opacity: 1;
+    transition: opacity 0.8s ease;
+    pointer-events: none;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .fade .next-title {
+    font-size: clamp(20px, 2.6vw, 34px);
+    color: var(--gold);
+    letter-spacing: 0.3em;
+    opacity: 0;
+    transition: opacity 0.6s ease 0.5s;
+  }
+  .fade.clear { opacity: 0; }
+  .fade.solid { opacity: 1; pointer-events: auto; }
+  .fade.solid .next-title { opacity: 1; }
+  .replay {
+    margin-top: 26px;
+    font-size: 15px;
+    color: var(--gold-dim);
+    letter-spacing: 0.2em;
+    opacity: 0;
+    transition: opacity 0.6s ease 1.2s;
+  }
+  .fade.solid .replay { opacity: 0.9; }
+  .fade .inner { text-align: center; }
+
+  /* 除錯用:#final 直達完成態 */
+  .noanim *, .noanim *::after { transition: none !important; animation: none !important; }
+  .noanim .character { opacity: 1; transform: none; }
+  .noanim .fade { display: none; }
+  .noanim .hint { opacity: 1; }
+
+  @media (max-width: 760px) {
+    .panel { width: 88%; bottom: 26%; }
+    .character { opacity: 0.35; width: 60%; right: -6%; }
+  }
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <div class="character"></div>
+  <div class="vignette"></div>
+
+  <div class="panel">
+    <div class="game-title">錦 繡 商 途</div>
+    <div class="chapter">序章 · 風起上海灘</div>
+    <div class="divider"></div>
+    <div class="story" id="story"></div>
+  </div>
+
+  <div class="bottom">
+    <div class="bar-row">
+      <span class="load-label" id="loadLabel">載入中</span>
+      <div class="bar"><div class="bar-fill" id="barFill"></div></div>
+      <span class="percent" id="percent">0%</span>
+    </div>
+    <div class="hint" id="hint">—— 點按畫面 · 推門迎客 ——</div>
+  </div>
+
+  <div class="fade" id="fade">
+    <div class="inner">
+      <div class="next-title">第一幕 · 客廳會談</div>
+      <div class="replay">（ 預覽示例 · 點按重新播放 ）</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 與 Godot 場景 loading_screen.tscn 相同的文案與節奏
+  const PARAGRAPHS = [
+    { cls: "",   html: '<span class="gold">清光緒末年</span>,上海開埠已逾半個甲子。<br>外灘汽笛日夜不息,洋行旗幟插滿十里洋場——這裡是冒險家的樂園,也是無數商號的墳場。' },
+    { cls: "",   html: '錦記綢緞莊,曾是名噪一時的老字號。老掌櫃驟逝,洋行壓價、同行環伺,賬上只餘三百兩碎銀。' },
+    { cls: "warn", html: '人人都在等著看笑話:一個寡居的女人,撐不起這扇門面。' },
+    { cls: "",   html: '今夜,一封燙金請帖送到案頭——英商亨利洋行的買辦<span class="gold">克勞迪</span>,願與錦記「談一談」。<br>一紙大單,足以翻身;一步踏錯,萬劫不復。' },
+    { cls: "",   html: '她對著銅鏡理了理衣襟,輕聲道——' },
+    { cls: "quote", html: '「開門,迎客。」' },
+  ];
+  const TYPE_MS = 36;          // 每字間隔,對應 Godot 版 28 字/秒
+  const LOAD_MS = 4200;        // 進度條總時長(模擬預載)
+
+  const storyEl  = document.getElementById("story");
+  const barFill  = document.getElementById("barFill");
+  const percent  = document.getElementById("percent");
+  const loadLabel= document.getElementById("loadLabel");
+  const hint     = document.getElementById("hint");
+  const fade     = document.getElementById("fade");
+  const stage    = document.getElementById("stage");
+
+  let typed = false, loaded = false, proceeding = false;
+  let skipTyping = false;
+
+  // 除錯:#final 直接呈現完成態(截圖驗收用)
+  const FINAL = location.hash.indexOf("final") >= 0;
+  if (FINAL) {
+    document.body.classList.add("noanim");
+    skipTyping = true;
+    loaded = true;
+  }
+
+  // 開場淡入 + 立繪滑入(用 JS 觸發 transition,與 fade 同一節奏)
+  const charEl = document.querySelector(".character");
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    fade.classList.add("clear");
+    charEl.classList.add("shown");
+  }));
+
+  // ---- 打字機:逐段落、逐字(保留段落內的樣式標記) ----
+  function typeParagraphs(idx) {
+    if (idx >= PARAGRAPHS.length) { typed = true; maybeReady(); return; }
+    const spec = PARAGRAPHS[idx];
+    const p = document.createElement("p");
+    if (spec.cls) p.className = spec.cls;
+    storyEl.appendChild(p);
+
+    if (skipTyping) {           // 點按跳過:直接輸出整段
+      p.innerHTML = spec.html;
+      typeParagraphs(idx + 1);
+      return;
+    }
+    // 用臨時節點拆出「純文字 + <br>」序列,避免逐字破壞標籤
+    const tpl = document.createElement("template");
+    tpl.innerHTML = spec.html;
+    const nodes = Array.from(tpl.content.childNodes);
+    let n = 0;
+    (function stepNode() {
+      if (n >= nodes.length || skipTyping) {
+        if (skipTyping) p.innerHTML = spec.html;
+        typeParagraphs(idx + 1);
+        return;
+      }
+      const node = nodes[n];
+      if (node.nodeType === Node.TEXT_NODE) {
+        const text = node.textContent;
+        const target = node.parentElement ? null : null;
+        const spanParent = p;
+        let i = 0;
+        (function stepChar() {
+          if (skipTyping) { p.innerHTML = spec.html; typeParagraphs(idx + 1); return; }
+          if (i < text.length) {
+            spanParent.appendChild(document.createTextNode(text[i++]));
+            setTimeout(stepChar, TYPE_MS);
+          } else { n++; stepNode(); }
+        })();
+      } else if (node.nodeName === "BR") {
+        p.appendChild(document.createElement("br"));
+        n++; stepNode();
+      } else {
+        // 內聯樣式節點(如 <span class="gold">):整段內文字仍逐字輸出
+        const clone = node.cloneNode(false);
+        p.appendChild(clone);
+        const text = node.textContent;
+        let i = 0;
+        (function stepChar() {
+          if (skipTyping) { p.innerHTML = spec.html; typeParagraphs(idx + 1); return; }
+          if (i < text.length) {
+            clone.appendChild(document.createTextNode(text[i++]));
+            setTimeout(stepChar, TYPE_MS);
+          } else { n++; stepNode(); }
+        })();
+      }
+    })();
+  }
+
+  // ---- 進度條 ----
+  const t0 = performance.now();
+  if (FINAL) {
+    barFill.style.width = "100%";
+    percent.textContent = "100%";
+    loadLabel.textContent = "備貨妥當";
+  } else (function tickBar(now) {
+    const t = Math.min(1, (now - t0) / LOAD_MS);
+    const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; // easeInOut
+    const pct = Math.round(eased * 100);
+    barFill.style.width = pct + "%";
+    percent.textContent = pct + "%";
+    if (t < 1) requestAnimationFrame(tickBar);
+    else { loaded = true; loadLabel.textContent = "備貨妥當"; maybeReady(); }
+  })(t0);
+
+  function maybeReady() {
+    if (typed && loaded && !proceeding) hint.classList.add("ready");
+  }
+
+  // ---- 互動:第一次點按補完文字,第二次進入下一幕 ----
+  stage.addEventListener("click", () => {
+    if (proceeding) return;
+    if (!typed) {
+      skipTyping = true;
+    } else if (loaded) {
+      proceeding = true;
+      fade.classList.remove("clear");
+      fade.classList.add("solid");
+    } else {
+      // 文字已完、仍在「載入」:加速進度條
+      barFill.style.transition = "width 0.4s ease";
+    }
+  });
+
+  // 結尾畫面點按:重新播放預覽
+  fade.addEventListener("click", () => {
+    if (!proceeding) return;
+    location.reload();
+  });
+
+  typeParagraphs(0);
+</script>
+</body>
+</html>

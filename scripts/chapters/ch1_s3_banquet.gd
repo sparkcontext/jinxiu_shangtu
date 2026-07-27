@@ -31,6 +31,8 @@ var _pending_results: Dictionary = {}
 var _last_result := ""
 
 func _ready() -> void:
+	GameState.save_chapter("res://scenes/chapters/ch1_s3_banquet.tscn")
+	AudioManager.play_ambience("banquet")
 	_toast.visible = false
 	_settlement.visible = false
 	if not _engine.load_from_json(DIALOGUE_PATH):
@@ -81,6 +83,8 @@ func _show_toast(notes: Array) -> void:
 	tween.tween_callback(func(): _toast.visible = false)
 
 func _on_finished() -> void:
+	GameState.clear_save() ## 第一章通關,清除進度
+	AudioManager.play_sfx("coin")
 	var ending: Array = ENDINGS.get(_last_result, ["第一章 · 完", "錦記的故事,才剛剛開始。"])
 	_settle_title.text = ending[0]
 	var lines: Array[String] = []

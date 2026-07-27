@@ -1,0 +1,162 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/loading_screen.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/backgrounds/parlor.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/characters/shen_yunjin.png" id="3"]
+
+[sub_resource type="StyleBoxFlat" id="bar_bg"]
+bg_color = Color(0.10, 0.08, 0.06, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.45, 0.36, 0.22, 0.8)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="bar_fill"]
+bg_color = Color(0.86, 0.68, 0.34, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[node name="LoadingScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1")
+
+[node name="Background" type="TextureRect" parent="."]
+modulate = Color(0.8, 0.78, 0.75, 1)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+texture = ExtResource("2")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Dim" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.62)
+
+[node name="Character" type="TextureRect" parent="."]
+layout_mode = 1
+anchor_left = 0.62
+anchor_top = 0.03
+anchor_right = 0.99
+anchor_bottom = 0.97
+texture = ExtResource("3")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="TextPanel" type="ColorRect" parent="."]
+layout_mode = 1
+anchor_left = 0.045
+anchor_top = 0.08
+anchor_right = 0.60
+anchor_bottom = 0.82
+color = Color(0.07, 0.05, 0.04, 0.74)
+
+[node name="Margin" type="MarginContainer" parent="TextPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/margin_left = 34
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 34
+theme_override_constants/margin_bottom = 24
+
+[node name="VBox" type="VBoxContainer" parent="TextPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="GameTitle" type="Label" parent="TextPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.67, 0.52, 1)
+theme_override_font_sizes/font_size = 18
+text = "錦 繡 商 途"
+
+[node name="ChapterLabel" type="Label" parent="TextPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.79, 0.48, 1)
+theme_override_font_sizes/font_size = 32
+text = "序章 · 風起上海灘"
+
+[node name="Divider" type="HSeparator" parent="TextPanel/Margin/VBox"]
+modulate = Color(0.91, 0.79, 0.48, 0.5)
+layout_mode = 2
+
+[node name="StoryText" type="RichTextLabel" parent="TextPanel/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+text = "[color=#e8cf9a]清光緒末年[/color],上海開埠已逾半個甲子。\n外灘汽笛日夜不息,洋行旗幟插滿十里洋場——這裡是冒險家的樂園,也是無數商號的墳場。\n\n錦記綢緞莊,曾是名噪一時的老字號。老掌櫃驟逝,洋行壓價、同行環伺,賬上只餘三百兩碎銀。\n[color=#d98f8f]人人都在等著看笑話:一個寡居的女人,撐不起這扇門面。[/color]\n\n今夜,一封燙金請帖送到案頭——英商亨利洋行的買辦[color=#e8cf9a]克勞迪[/color],願與錦記「談一談」。\n一紙大單,足以翻身;一步踏錯,萬劫不復。\n\n她對著銅鏡理了理衣襟,輕聲道——\n[color=#f7ead0][i]「開門,迎客。」[/i][/color]"
+fit_content = true
+scroll_active = false
+theme_override_colors/default_color = Color(0.88, 0.84, 0.75, 1)
+theme_override_constants/line_separation = 8
+theme_override_font_sizes/normal_font_size = 18
+
+[node name="BottomBar" type="MarginContainer" parent="."]
+layout_mode = 1
+anchor_left = 0.08
+anchor_top = 0.845
+anchor_right = 0.92
+anchor_bottom = 0.965
+
+[node name="VBox" type="VBoxContainer" parent="BottomBar"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="BarRow" type="HBoxContainer" parent="BottomBar/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="LoadLabel" type="Label" parent="BottomBar/VBox/BarRow"]
+custom_minimum_size = Vector2(96, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.67, 0.52, 1)
+theme_override_font_sizes/font_size = 17
+text = "載入中"
+
+[node name="ProgressBar" type="ProgressBar" parent="BottomBar/VBox/BarRow"]
+custom_minimum_size = Vector2(0, 14)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_styles/background = SubResource("bar_bg")
+theme_override_styles/fill = SubResource("bar_fill")
+max_value = 100.0
+show_percentage = false
+
+[node name="Percent" type="Label" parent="BottomBar/VBox/BarRow"]
+custom_minimum_size = Vector2(52, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.67, 0.52, 1)
+theme_override_font_sizes/font_size = 17
+text = "0%"
+horizontal_alignment = 2
+
+[node name="Hint" type="Label" parent="BottomBar/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.79, 0.48, 1)
+theme_override_font_sizes/font_size = 17
+text = "—— 點按畫面 · 推門迎客 ——"
+horizontal_alignment = 1
+
+[node name="FadeRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(0, 0, 0, 1)

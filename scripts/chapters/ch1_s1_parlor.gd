@@ -21,6 +21,8 @@ const NEXT_SCENE := "res://scenes/chapters/ch1_s2_dock.tscn"
 var _engine := DialogueEngine.new()
 
 func _ready() -> void:
+	GameState.save_chapter("res://scenes/chapters/ch1_s1_parlor.tscn")
+	AudioManager.play_ambience("parlor")
 	_settlement.visible = false
 	_toast.visible = false
 

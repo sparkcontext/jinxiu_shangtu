@@ -61,14 +61,22 @@ func _show_choice_buttons() -> void:
 	for i in _pending_choices.size():
 		var choice: Dictionary = _pending_choices[i]
 		var btn := Button.new()
-		btn.text = "%d. %s" % [i + 1, choice.get("text", "……")]
+		var locked := false
+		## 情報鎖定選項:需要特定情報才可選
+		if choice.has("requires_flag"):
+			var key: String = choice["requires_flag"]
+			locked = not GameState.flags.any(func(f: String): return f.contains(key))
+		btn.text = "%d. %s%s" % [i + 1, "🔒 " if locked else "", choice.get("text", "……")]
 		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		btn.pressed.connect(_on_choice_pressed.bind(i))
+		btn.disabled = locked
+		if not locked:
+			btn.pressed.connect(_on_choice_pressed.bind(i))
 		_choices_box.add_child(btn)
 	_choices_box.visible = true
 	_pending_choices = []
 
 func _on_choice_pressed(index: int) -> void:
+	AudioManager.play_sfx("click")
 	choice_selected.emit(index)
 
 ## 點擊或按鍵:打字中→直接顯示全文;已完成→推進劇情
@@ -78,6 +86,7 @@ func _on_tap() -> void:
 	elif _choices_box.visible:
 		pass ## 等玩家按選項
 	else:
+		AudioManager.play_sfx("page")
 		advance_requested.emit()
 
 func _gui_input(event: InputEvent) -> void:
@@ -96,7 +105,9 @@ func _unhandled_key_input(event: InputEvent) -> void:
 				KEY_3, KEY_KP_3: idx = 2
 				KEY_4, KEY_KP_4: idx = 3
 			if idx >= 0 and idx < _choices_box.get_child_count():
-				_on_choice_pressed(idx)
+				var btn: Button = _choices_box.get_child(idx)
+				if not btn.disabled: ## 情報鎖定的選項不可用快捷鍵觸發
+					_on_choice_pressed(idx)
 				get_viewport().set_input_as_handled()
 			return
 		if event.is_action_pressed("ui_accept") or event.keycode == KEY_SPACE:

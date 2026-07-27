@@ -18,6 +18,8 @@ var _engine := DialogueEngine.new()
 var _pending_results: Dictionary = {}
 
 func _ready() -> void:
+	GameState.save_chapter("res://scenes/chapters/ch1_s2_dock.tscn")
+	AudioManager.play_ambience("dock")
 	_toast.visible = false
 	if not _engine.load_from_json(DIALOGUE_PATH):
 		return
