@@ -3,6 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "node -e \"const fs=require('fs'); fs.cpSync('web_export','dist',{recursive:true}); console.log('Copied web_export to dist')\""
+    "build": "echo 'Static files ready'"
   }
 }

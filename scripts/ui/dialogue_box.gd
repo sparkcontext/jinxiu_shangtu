@@ -86,6 +86,18 @@ func _gui_input(event: InputEvent) -> void:
 		accept_event()
 
 func _unhandled_key_input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_accept") or \
-		(event is InputEventKey and event.pressed and event.keycode == KEY_SPACE):
-		_on_tap()
+	if event is InputEventKey and event.pressed and not event.echo:
+		## 選項浮出時:數字鍵 1–4(含小鍵盤)直接選擇
+		if _choices_box.visible:
+			var idx := -1
+			match event.keycode:
+				KEY_1, KEY_KP_1: idx = 0
+				KEY_2, KEY_KP_2: idx = 1
+				KEY_3, KEY_KP_3: idx = 2
+				KEY_4, KEY_KP_4: idx = 3
+			if idx >= 0 and idx < _choices_box.get_child_count():
+				_on_choice_pressed(idx)
+				get_viewport().set_input_as_handled()
+			return
+		if event.is_action_pressed("ui_accept") or event.keycode == KEY_SPACE:
+			_on_tap()
