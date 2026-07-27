@@ -1,6 +1,46 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/backgrounds/parlor.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/characters/shen_yunjin.png" id="3"]
+
+[sub_resource type="StyleBoxFlat" id="btn_normal"]
+bg_color = Color(0.09, 0.07, 0.05, 0.82)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.55, 0.44, 0.26, 0.9)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="btn_hover"]
+bg_color = Color(0.17, 0.13, 0.09, 0.92)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.91, 0.79, 0.48, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="btn_pressed"]
+bg_color = Color(0.05, 0.04, 0.03, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.55, 0.44, 0.26, 0.9)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxEmpty" id="btn_focus"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -9,50 +49,116 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 script = ExtResource("1")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="TextureRect" parent="."]
+modulate = Color(0.8, 0.78, 0.75, 1)
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-color = Color(0.16, 0.11, 0.09, 1)
+texture = ExtResource("2")
+expand_mode = 1
+stretch_mode = 6
 
-[node name="Center" type="CenterContainer" parent="."]
+[node name="Dim" type="ColorRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.55)
 
-[node name="VBox" type="VBoxContainer" parent="Center"]
-theme_override_constants/separation = 26
+[node name="Character" type="TextureRect" parent="."]
+layout_mode = 1
+anchor_left = 0.62
+anchor_top = 0.03
+anchor_right = 0.99
+anchor_bottom = 0.97
+texture = ExtResource("3")
+expand_mode = 1
+stretch_mode = 4
 
-[node name="Title" type="Label" parent="Center/VBox"]
-theme_override_colors/font_color = Color(0.91, 0.79, 0.48, 1)
-theme_override_font_sizes/font_size = 72
-text = "錦繡商途"
-horizontal_alignment = 1
+[node name="TitleBlock" type="MarginContainer" parent="."]
+layout_mode = 1
+anchor_left = 0.07
+anchor_top = 0.15
+anchor_right = 0.62
+anchor_bottom = 0.88
 
-[node name="Subtitle" type="Label" parent="Center/VBox"]
+[node name="VBox" type="VBoxContainer" parent="TitleBlock"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Presented" type="Label" parent="TitleBlock/VBox"]
+layout_mode = 2
 theme_override_colors/font_color = Color(0.75, 0.67, 0.52, 1)
+theme_override_font_sizes/font_size = 18
+text = "錦 記 綢 緞 莊 · 敬 呈"
+
+[node name="Title" type="Label" parent="TitleBlock/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.79, 0.48, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.6)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 3
+theme_override_font_sizes/font_size = 86
+text = "錦 繡 商 途"
+
+[node name="Divider" type="HSeparator" parent="TitleBlock/VBox"]
+modulate = Color(0.91, 0.79, 0.48, 0.5)
+layout_mode = 2
+
+[node name="Subtitle" type="Label" parent="TitleBlock/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.88, 0.84, 0.75, 0.9)
 theme_override_font_sizes/font_size = 22
 text = "—— 清末女掌櫃的商海浮沉 ——"
-horizontal_alignment = 1
 
-[node name="Continue" type="Button" parent="Center/VBox"]
-visible = false
-custom_minimum_size = Vector2(260, 56)
+[node name="Gap" type="Control" parent="TitleBlock/VBox"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+
+[node name="Start" type="Button" parent="TitleBlock/VBox"]
+custom_minimum_size = Vector2(280, 60)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.79, 0.48, 1)
+theme_override_colors/font_hover_color = Color(1, 0.93, 0.7, 1)
+theme_override_colors/font_pressed_color = Color(0.75, 0.67, 0.52, 1)
 theme_override_font_sizes/font_size = 26
-text = "繼續旅程"
+theme_override_styles/normal = SubResource("btn_normal")
+theme_override_styles/hover = SubResource("btn_hover")
+theme_override_styles/pressed = SubResource("btn_pressed")
+theme_override_styles/focus = SubResource("btn_focus")
+text = "開 始"
 
-[node name="Start" type="Button" parent="Center/VBox"]
-custom_minimum_size = Vector2(260, 56)
-theme_override_font_sizes/font_size = 26
-text = "新的開始"
-
-[node name="Quit" type="Button" parent="Center/VBox"]
-custom_minimum_size = Vector2(260, 48)
+[node name="Quit" type="Button" parent="TitleBlock/VBox"]
+custom_minimum_size = Vector2(280, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.67, 0.52, 1)
+theme_override_colors/font_hover_color = Color(0.98, 0.9, 0.65, 1)
+theme_override_colors/font_pressed_color = Color(0.6, 0.53, 0.4, 1)
 theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("btn_normal")
+theme_override_styles/hover = SubResource("btn_hover")
+theme_override_styles/pressed = SubResource("btn_pressed")
+theme_override_styles/focus = SubResource("btn_focus")
 text = "離 開"
 
-[connection signal="pressed" from="Center/VBox/Continue" to="." method="_on_continue_pressed"]
-[connection signal="pressed" from="Center/VBox/Start" to="." method="_on_start_pressed"]
-[connection signal="pressed" from="Center/VBox/Quit" to="." method="_on_quit_pressed"]
+[node name="Footer" type="Label" parent="."]
+layout_mode = 1
+anchor_left = 0.07
+anchor_top = 0.935
+anchor_right = 0.6
+anchor_bottom = 0.985
+theme_override_colors/font_color = Color(0.6, 0.55, 0.45, 0.8)
+theme_override_font_sizes/font_size = 14
+text = "M1 雛形 · 第一章 客廳會談 · 碼頭驗貨 · 酒宴談判"
+
+[node name="FadeRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[connection signal="pressed" from="TitleBlock/VBox/Start" to="." method="_on_start_pressed"]
+[connection signal="pressed" from="TitleBlock/VBox/Quit" to="." method="_on_quit_pressed"]
