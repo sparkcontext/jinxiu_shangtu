@@ -123,8 +123,8 @@ body {
 	text-align: center;
 }
 		</style>
-		<link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
-	<link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
+<link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
+<link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
 
 	</head>
 	<body>
@@ -148,8 +148,7 @@ body {
 
 		<script src="index.js"></script>
 		<script>
-const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":26894944,"index.wasm":41848195},"focusCanvas":true,"gdextensionLibs":[]};
-const GODOT_THREADS_ENABLED = true;
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":29048880,"index.wasm":43699190},"focusCanvas":true,"gdextensionLibs":[]};
 const engine = new Engine(GODOT_CONFIG);
 
 (function () {
@@ -197,7 +196,7 @@ const engine = new Engine(GODOT_CONFIG);
 	}
 
 	const missing = Engine.getMissingFeatures({
-		threads: GODOT_THREADS_ENABLED,
+		threads: GODOT_CONFIG['ensureCrossOriginIsolationHeaders'] === true,
 	});
 
 	if (missing.length !== 0) {
@@ -246,3 +245,4 @@ const engine = new Engine(GODOT_CONFIG);
 		</script>
 	</body>
 </html>
+
