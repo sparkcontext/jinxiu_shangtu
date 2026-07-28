@@ -23,6 +23,8 @@ var _progress := 0.0     ## 平滑後的進度條數值
 var _blink := 0.0
 var _last_tap_frame := -1 ## 去重:觸控與模擬滑鼠事件可能同幀成對送達
 var _char_time := 0.0    ## 人物閒置動畫計時
+var _char_base := Vector2.ZERO ## 人物錨點佈局的基準位置(漂移動畫以此為中心)
+var _char_bob := Vector2.ZERO  ## 當前漂移偏移量,resize 時用於還原基準位置
 
 func _ready() -> void:
 	_fade.modulate.a = 1.0
@@ -32,7 +34,8 @@ func _ready() -> void:
 	_character.modulate.a = 0.0
 	## 人物動畫以腳底為樞軸,搖曳時雙腳不滑動
 	_update_character_pivot()
-	_character.resized.connect(_update_character_pivot)
+	_character.resized.connect(_on_character_resized)
+	_char_base = _character.position
 	ResourceLoader.load_threaded_request(next_scene)
 	var t := create_tween().set_parallel(true)
 	t.tween_property(_fade, "modulate:a", 0.0, 0.8)
@@ -41,12 +44,19 @@ func _ready() -> void:
 func _update_character_pivot() -> void:
 	_character.pivot_offset = Vector2(_character.size.x * 0.5, _character.size.y)
 
+func _on_character_resized() -> void:
+	## 視窗縮放時錨點會重算位置,扣除當前漂移量即為新的基準位置
+	_update_character_pivot()
+	_char_base = _character.position - _char_bob
+
 func _process(delta: float) -> void:
-	# 人物閒置動畫:呼吸起伏 + 輕微搖曳,讓立繪「活」起來
+	# 人物閒置動畫:明顯的呼吸起伏 + 搖曳 + 緩慢漂移,讓立繪「活」起來
 	_char_time += delta
-	var breathe := 1.0 + 0.014 * sin(_char_time * 1.7)
+	var breathe := 1.0 + 0.025 * sin(_char_time * 1.7)
 	_character.scale = Vector2(breathe, breathe)
-	_character.rotation = 0.009 * sin(_char_time * 0.9)
+	_character.rotation = 0.02 * sin(_char_time * 0.9)
+	_char_bob = Vector2(4.0 * sin(_char_time * 0.5), 7.0 * sin(_char_time * 1.1))
+	_character.position = _char_base + _char_bob
 	# 打字機逐字顯示
 	if not _typed:
 		_shown += TYPING_SPEED * delta
