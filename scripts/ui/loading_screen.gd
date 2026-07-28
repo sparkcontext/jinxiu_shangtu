@@ -22,6 +22,7 @@ var _total_chars := 0
 var _progress := 0.0     ## 平滑後的進度條數值
 var _blink := 0.0
 var _last_tap_frame := -1 ## 去重:觸控與模擬滑鼠事件可能同幀成對送達
+var _char_time := 0.0    ## 人物閒置動畫計時
 
 func _ready() -> void:
 	_fade.modulate.a = 1.0
@@ -29,12 +30,23 @@ func _ready() -> void:
 	_story.visible_characters = 0
 	_total_chars = _story.get_parsed_text().length()
 	_character.modulate.a = 0.0
+	## 人物動畫以腳底為樞軸,搖曳時雙腳不滑動
+	_update_character_pivot()
+	_character.resized.connect(_update_character_pivot)
 	ResourceLoader.load_threaded_request(next_scene)
 	var t := create_tween().set_parallel(true)
 	t.tween_property(_fade, "modulate:a", 0.0, 0.8)
 	t.tween_property(_character, "modulate:a", 1.0, 1.6).set_delay(0.4)
 
+func _update_character_pivot() -> void:
+	_character.pivot_offset = Vector2(_character.size.x * 0.5, _character.size.y)
+
 func _process(delta: float) -> void:
+	# 人物閒置動畫:呼吸起伏 + 輕微搖曳,讓立繪「活」起來
+	_char_time += delta
+	var breathe := 1.0 + 0.014 * sin(_char_time * 1.7)
+	_character.scale = Vector2(breathe, breathe)
+	_character.rotation = 0.009 * sin(_char_time * 0.9)
 	# 打字機逐字顯示
 	if not _typed:
 		_shown += TYPING_SPEED * delta
