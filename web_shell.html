@@ -169,10 +169,11 @@ $GODOT_HEAD_INCLUDE
 </script>
 	</head>
 	<body>
-		<canvas id="silk-bg"></canvas>
+		<!-- 注意:Godot 引擎會取 DOM 中「第一個」<canvas>,遊戲畫布必須排在最前 -->
 		<canvas id="canvas">
 			Your browser does not support the canvas tag.
 		</canvas>
+		<canvas id="silk-bg"></canvas>
 
 		<noscript>
 			Your browser does not support JavaScript.
@@ -192,6 +193,8 @@ $GODOT_HEAD_INCLUDE
 		<script src="$GODOT_URL"></script>
 		<script>
 const GODOT_CONFIG = $GODOT_CONFIG;
+// 明確指定遊戲畫布,避免引擎誤取絲綢背景 canvas
+GODOT_CONFIG.canvas = document.getElementById('canvas');
 const engine = new Engine(GODOT_CONFIG);
 
 (function () {
