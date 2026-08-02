@@ -2,7 +2,19 @@
   "name": "jinxiu-shangtu",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "build": "echo 'Static files ready'"
+    "dev": "vite",
+    "build": "vite build",
+    "build:silk": "vite build --config vite.silk.config.js",
+    "build:all": "vite build && vite build --config vite.silk.config.js",
+    "build:web": "npm run build:all && node scripts/copy-web-dist.js",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "three": "^0.185.1"
+  },
+  "devDependencies": {
+    "vite": "^8.2.0"
   }
 }

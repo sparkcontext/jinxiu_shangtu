@@ -27,6 +27,14 @@ body {
 	outline: none;
 }
 
+/* ===== Three.js 絲綢動態背景(置於遊戲畫布之下) ===== */
+#silk-bg {
+	position: fixed;
+	inset: 0;
+	z-index: -1;
+	display: block;
+}
+
 /* ===== 《錦繡商途》簡潔品牌加載畫面(取代 Godot 預設載入畫面) ===== */
 #status {
 	position: absolute;
@@ -39,15 +47,19 @@ body {
 	flex-direction: column;
 	justify-content: center;
 	align-items: center;
-	background: #000 url("assets/parlor.png") center / cover no-repeat;
+	background: transparent; /* 讓底層的 Three.js 絲綢背景透出 */
 	transition: opacity 0.8s ease;
 }
 
-#status::before { /* 壓暗底圖 */
+#status.no-webgl { /* WebGL 不可用時退回靜態底圖 */
+	background: #000 url("assets/parlor.png") center / cover no-repeat;
+}
+
+#status::before { /* 壓暗背景,讓文字清晰 */
 	content: "";
 	position: absolute;
 	inset: 0;
-	background: rgba(0, 0, 0, 0.68);
+	background: rgba(0, 0, 0, 0.55);
 }
 
 #status.done {
@@ -103,6 +115,26 @@ body {
 	font-variant-numeric: tabular-nums;
 }
 
+/* ===== 白天金絲緞主題(由開場頁帶入) ===== */
+html[data-theme="day"] #status::before {
+	background: rgba(255, 246, 228, 0.28);
+}
+
+html[data-theme="day"] .ls-title {
+	color: #6e2b16;
+	text-shadow: 1px 1px 0 rgba(255, 250, 235, 0.7);
+}
+
+html[data-theme="day"] .ls-subtitle,
+html[data-theme="day"] .ls-percent {
+	color: #7a4d12;
+}
+
+html[data-theme="day"] .ls-bar {
+	background: rgba(255, 248, 230, 0.55);
+	border-color: rgba(150, 105, 40, 0.7);
+}
+
 #status-notice {
 	display: none;
 	position: absolute;
@@ -125,9 +157,20 @@ body {
 		</style>
 <link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
 <link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
+<script>
+// 首繪前設定載入頁氛圍:URL 參數 > localStorage > 夜
+(function () {
+	var t = new URLSearchParams(location.search).get('theme');
+	if (t !== 'day' && t !== 'night') {
+		try { t = localStorage.getItem('jinxiu-theme'); } catch (e) { t = null; }
+	}
+	document.documentElement.dataset.theme = (t === 'day' || t === 'night') ? t : 'night';
+})();
+</script>
 
 	</head>
 	<body>
+		<canvas id="silk-bg"></canvas>
 		<canvas id="canvas">
 			Your browser does not support the canvas tag.
 		</canvas>
@@ -146,6 +189,7 @@ body {
 			<div id="status-notice"></div>
 		</div>
 
+		<script src="silk-bg.js"></script>
 		<script src="index.js"></script>
 		<script>
 const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":34512032,"index.wasm":43699190},"focusCanvas":true,"gdextensionLibs":[]};
@@ -157,6 +201,22 @@ const engine = new Engine(GODOT_CONFIG);
 	const barFill = document.getElementById('ls-bar-fill');
 	const percent = document.getElementById('ls-percent');
 
+	// 啟動 Three.js 絲綢動態背景(沿用開場頁的日夜氛圍);WebGL 不可用時退回靜態底圖
+	let silkBg = null;
+	try {
+		if (window.JinxiuSilk) {
+			silkBg = JinxiuSilk.start(document.getElementById('silk-bg'), {
+				interactive: true,
+				theme: document.documentElement.dataset.theme || 'night',
+			});
+		} else {
+			statusOverlay.classList.add('no-webgl');
+		}
+	} catch (err) {
+		console.warn('Silk background unavailable, falling back to static image:', err);
+		statusOverlay.classList.add('no-webgl');
+	}
+
 	let initializing = true;
 
 	function hideStatusOverlay() {
@@ -167,7 +227,15 @@ const engine = new Engine(GODOT_CONFIG);
 		// 稍候片刻讓玩家看到 100%,再淡出進入遊戲
 		setTimeout(() => {
 			statusOverlay.classList.add('done');
-			setTimeout(() => statusOverlay.remove(), 900);
+			setTimeout(() => {
+				statusOverlay.remove();
+				// 遊戲已接管畫面,停止絲綢渲染以釋放 GPU 資源
+				if (silkBg) {
+					silkBg.stop();
+					document.getElementById('silk-bg').remove();
+					silkBg = null;
+				}
+			}, 900);
 		}, 400);
 	}
 
